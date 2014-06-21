@@ -27,7 +27,7 @@ end
 function sched.run()
     local i = 1
     while true do
-        os.sleep(0) -- maybe less frequent?
+        -- os.sleep(0) -- maybe less frequent?
         if #pids == 0 then
             panic('No processes to execute')
         end
