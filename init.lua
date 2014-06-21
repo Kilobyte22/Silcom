@@ -91,16 +91,16 @@ local function main(...)
             _G.unicode = nil
 
             -- Initialize the package module with some of our own APIs.
-            --package.preload["buffer"] = loadfile("/lib/buffer.lua")
+            package.preload["buffer"] = loadfile("/lib/buffer.lua")
             package.preload["component"] = function() return component end
             package.preload["computer"] = function() return computer end
-            --package.preload["filesystem"] = loadfile("/lib/filesystem.lua")
-            --package.preload["io"] = loadfile("/lib/io.lua")
+            package.preload["filesystem"] = loadfile("/lib/filesystem.lua")
+            package.preload["io"] = loadfile("/lib/io.lua")
             package.preload["unicode"] = function() return unicode end
 
             -- Inject the package and io modules into the global namespace, as in Lua.
             _G.package = package
-            --_G.io = require("io")
+            _G.io = require("io")
         end
 
         status("Initializing file system...")
