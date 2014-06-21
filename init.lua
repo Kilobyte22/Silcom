@@ -133,7 +133,7 @@ local function main(...)
         for c, t in component.list() do
             computer.pushSignal("component_added", c, t)
         end
-        os.sleep(0.5) -- Allow signal processing by libraries.
+        -- os.sleep(0.5) -- Allow signal processing by libraries.
         computer.pushSignal("init") -- so libs know components are initialized.
 
         status("Starting shell...")
