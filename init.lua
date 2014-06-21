@@ -152,7 +152,7 @@ local function main(...)
 
 
     return
-
+--[[
     while true do
         require("term").clear()
         io.write(_OSVERSION .. " (" .. math.floor(computer.totalMemory() / 1024) .. "k RAM)\n")
@@ -164,6 +164,7 @@ local function main(...)
             event.pull("key")
         end
     end
+    ]]
 end
 
 -- todo: fancy handling
