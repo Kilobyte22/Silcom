@@ -127,14 +127,14 @@ end
 function sched.Thread:resume()
     cthread = self
     _CONTEXT = 'process'
-    local syscalldata = table.pack(coroutine.resume(self.routine, unpack(self.args)))
+    local syscalldata = table.pack(coroutine.resume(self.routine, table.unpack(self.args)))
     _CONTEXT = 'kernel'
     if coroutine.status(self.routine) == 'dead' then
         self:exit()
         return false
     end
     _CONTEXT = 'syscall'
-    self.args = table.pack(syscall.execute(unpack(syscalldata))) -- maybe compact even more to improve speed?
+    self.args = table.pack(syscall.execute(table.unpack(syscalldata))) -- maybe compact even more to improve speed?
     _CONTEXT = 'kernel'
     cthread = nil
     return true

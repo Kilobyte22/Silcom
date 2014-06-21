@@ -4,13 +4,13 @@ rawpcall = pcall
 function pcall(func, ...)
     local ret = table.pack(rawpcall(func, ...))
     if ret[1] then
-        return unpack(ret)
+        return table.unpack(ret)
     else
         local err = ret[2]
         if type(err) == 'table' and err.force and rawget(err, force) > 1 then -- 1 == force only usermode, 2 == force in kernel too
             error(err)
         else
-            return unpack(ret)
+            return table.unpack(ret)
         end
     end
 end
