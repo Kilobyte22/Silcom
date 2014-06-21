@@ -48,7 +48,7 @@ local function main(...)
             status("> " .. file)
             local handle, reason = rom.open(file)
             if not handle then
-                error(reason)
+                error("Could not load "..file..": "..tostring(reason))
             end
             local buffer = ""
             repeat
