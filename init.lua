@@ -177,3 +177,6 @@ if not s then
         error('Uncaught error: '..m)
     end
 end
+while true do
+    coroutine.yield()
+end
