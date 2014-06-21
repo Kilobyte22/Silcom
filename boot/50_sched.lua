@@ -41,7 +41,7 @@ function sched.Process:initialize(parent, envvars, callback)
     self.envvars = envvars
     self.parent = parent
     self.id = nextid
-    self.fds
+    self.fds = {}
     self.nexttid = 1
     self.mainthread = sched.Thread(self, callback, {})
     self.terminated = false
