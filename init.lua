@@ -100,7 +100,7 @@ local function main(...)
 
             -- Inject the package and io modules into the global namespace, as in Lua.
             _G.package = package
-            _G.io = require("io")
+            --_G.io = require("io")
         end
 
         status("Initializing file system...")
