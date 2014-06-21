@@ -149,7 +149,7 @@ local function main(...)
     end
 
     init = sched.Process(nil, {}, initcb)
-
+    sched.run()
 
     return
 --[[
