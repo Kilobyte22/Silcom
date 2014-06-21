@@ -126,7 +126,7 @@ local function main(...)
         end
 
         -- Initialize process module.
-        require("process").install("/init.lua", "init")
+        -- require("process").install("/init.lua", "init")
 
         status("Initializing components...")
 
