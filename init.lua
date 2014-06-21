@@ -139,8 +139,8 @@ local function main(...)
         status("Starting shell...")
     end
 
-    local computer = require("computer") -- TODO: remove require
-    local event = require("event")
+    --local computer = require("computer") -- TODO: remove require
+    --local event = require("event")
 
     _CONTEXT = 'kernel'
 
