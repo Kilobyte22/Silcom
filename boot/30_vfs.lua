@@ -2,6 +2,7 @@ vfs = {}
 
 local mounts = {}
 local mountCache = {}
+local filesystems = {}
 setmetatable(mountCache, {__mode = 'k'})
 
 function vfs.resolveMount(path) -- if anyone wants to increase performance, go ahead
@@ -64,4 +65,8 @@ function vfs.mount(driver, filehandle, mountpoint, options)
         options = options
     }
     return true
+end
+
+function vfs.registerFileSystem(name, driver)
+    
 end
