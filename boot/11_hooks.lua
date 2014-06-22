@@ -15,6 +15,7 @@ function hook(what, callback)
 end
 
 function callHook(what, ...)
+    log('hook: '..what)
     local hooklist = hooks[what]
     if hooklist then
         for i = 1, #hooklist do

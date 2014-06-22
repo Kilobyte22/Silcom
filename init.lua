@@ -17,6 +17,14 @@ local function main(...)
         function rom.inits(file) return ipairs(rom.invoke("list", "boot")) end
         function rom.isDirectory(path) return rom.invoke("isDirectory", path) end
 
+        logfile = rom.invoke('open', '/boot.log', 'w')
+        function log(message)
+            rom.invoke('write', logfile, message..'\n')
+        end
+        function closelog()
+            rom.invoke('close', logfile)
+        end
+
         -- Report boot progress if possible.
         local gpu, screen = component.list("gpu")(), component.list("screen")()
         local w, h
@@ -29,7 +37,8 @@ local function main(...)
             component.invoke(gpu, "fill", 1, 1, w, h, " ")
         end
         local y = 1
-        local function status(msg)
+        function status(msg)
+            log(msg)
             if gpu and screen then
                 component.invoke(gpu, "set", 1, y, msg)
                 if y == h then
@@ -136,19 +145,37 @@ local function main(...)
         -- os.sleep(0.5) -- Allow signal processing by libraries.
         computer.pushSignal("init") -- so libs know components are initialized.
 
-        status("Starting shell...")
     end
 
-    --local computer = require("computer") -- TODO: remove require
+    local computer = require("computer") -- TODO: remove require
     --local event = require("event")
 
     _CONTEXT = 'kernel'
 
-    local function initcb()
-        coroutine.yield('print', 'test')
+    local test, initcb
+    do
+        local _ENV = {syscall = coroutine.yield, tostring = tostring}
+        initcb = function()
+            syscall('panic', 'test')
+        end
+        test = function()
+            local pid = syscall('getpid')
+            for i = 1, 5 do
+                syscall('log', 'Hello from process '..tostring(pid))
+            end
+        end
     end
 
-    init = sched.Process(nil, {}, initcb)
+    init = sched.Process(nil, {}, test)
+    init2 = sched.Process(nil, {}, test)
+    init3 = sched.Process(nil, {}, test)
+
+    status('Starting scheduler')
+
+    local free, total = math.floor(computer.freeMemory() / 1024), math.floor(computer.totalMemory() / 1024)
+    local used = total - free
+    log('Memory used: '..used..'k of '..total..'k | Free: '..free..'k')
+
     sched.run()
 
     return
@@ -168,15 +195,29 @@ local function main(...)
 end
 
 -- todo: fancy handling
-local s, m = pcall(main, ...)
-if not s then
+local args = {...}
+
+local function runmain()
+    return main(table.unpack(args))
+end
+
+local function ehdl(m)
     if type(m) == 'table' then
         local text = m.message..'\n'..m.bt
-        error(text)
+        return text
     else
-        error('Uncaught error: '..m)
+        return 'Uncaught error: '..m..'\n'..debug.traceback()
     end
 end
-while true do
-    coroutine.yield()
+
+local s, m = xpcall(runmain, ehdl)
+pcall(function() 
+    log('~~ERROR~~')
+    log(m)
+    closelog()
+end)
+if not s then
+    error(m)
 end
+
+error('Computer terminated unexpectedly')

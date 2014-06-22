@@ -43,6 +43,7 @@ function sandbox.create()
     sbx._G = sbx
     sbx._P = plocal()
     sbx._T = tlocal()
+    sbx.syscall = coroutine.yield
     callHook('sandbox:create', sbx)
     return sbx
 end

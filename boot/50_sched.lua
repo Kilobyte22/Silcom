@@ -31,9 +31,11 @@ function sched.run()
         if #pids == 0 then
             panic('No processes to execute')
         end
-        if i >= #pids then
+        if i > #pids then
             i = 1
         end
+        processes[pids[i]]:resume()
+        i = i + 1
     end
 end
 
@@ -60,12 +62,14 @@ end
 
 function sched.Process:kill(id)
     table.insert(self.signals, id)
+    log('Signal '..tostring(id)..' (SIG'..signals[id]..') => PID '..tostring(self.id))
 end
 
 function sched.Process:resume()
     pid = self.id
     if #self.signals > 0 then -- signals scheduled?
         if not self.forcethread then -- already handling a signal?
+            log('uwot')
             self.forcethread = sched.Thread(self, signal.handle, {self, self.signals[1]})
         end
         if not self.forcethread:resume() then
@@ -73,11 +77,15 @@ function sched.Process:resume()
             table.remove(self.signals, 1)
         end
     else
-        if self.nextthread > #self.threads then
-            self.nextthread = 1
+        if #self.threads == 0 then
+            panic('Process '..tostring(self.id)..' seems to have no threads')
         end
-        self.threads[self.nextthread]:resume()
-        self.nextthread = self.nextthread + 1
+        if self.nexttid > #self.threads then
+            self.nexttid = 1
+        end
+        status(tostring(self.nexttid))
+        self.threads[self.nexttid]:resume()
+        self.nexttid = self.nexttid + 1
     end
     pid = nil
 end
@@ -121,6 +129,8 @@ function sched.Thread:initialize(process, callback, args)
     self.id = process.nexttid
     self._T = {}
 
+    log('Init thread '..tostring(self.id))
+
     process.nexttid = process.nexttid + 1
 end
 
@@ -129,12 +139,19 @@ function sched.Thread:resume()
     _CONTEXT = 'process'
     local syscalldata = table.pack(coroutine.resume(self.routine, table.unpack(self.args)))
     _CONTEXT = 'kernel'
+    if not syscalldata[1] then
+        -- TODO: set process error message
+        self:exit()
+        self.process:kill(signals.ABRT)
+        log('Uncaught error: '..tostring(syscalldata[2]))
+        return false
+    end
     if coroutine.status(self.routine) == 'dead' then
         self:exit()
         return false
     end
     _CONTEXT = 'syscall'
-    self.args = table.pack(syscall.execute(table.unpack(syscalldata))) -- maybe compact even more to improve speed?
+    self.args = table.pack(syscall.execute(table.unpack(syscalldata, 2))) -- maybe compact even more to improve speed?
     _CONTEXT = 'kernel'
     cthread = nil
     return true
@@ -143,6 +160,7 @@ end
 function sched.Thread:exit()
     callHook('sched:thread_death', self)
     table.remove(self.process.threads, table.find(self.process.threads, self))
+    log('Thread '..tostring(self.id)..' of process '..tostring(self.process.id)..' died. Process termination status: '..tostring(self.process.terminated))
     if self.id == 1 and not self.process.terminated then
         self.process:exit(0)
     end
