@@ -152,6 +152,8 @@ local function main(...)
 
     _CONTEXT = 'kernel'
 
+    vfs.mount(vfs.fsFromName('tempfs'), nil, '/', {})
+
     local test, initcb
     do
         local _ENV = {syscall = coroutine.yield, tostring = tostring}
@@ -160,8 +162,11 @@ local function main(...)
         end
         test = function()
             local pid = syscall('getpid')
+            local f = syscall('open', '/test')
             for i = 1, 5 do
+                syscall('write', f, tostring(pid))
                 syscall('log', 'Hello from process '..tostring(pid))
+                syscall('log', 'my text is'..syscall('read', f))
             end
         end
     end

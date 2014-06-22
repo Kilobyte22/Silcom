@@ -30,3 +30,15 @@ register('getpid', function ()
 end)
 
 register('log', log)
+
+register('open', function (name, mode)
+    return vfs.open(name, mode)
+end)
+
+register('write', function (handle, text)
+    handle:write('text')
+end)
+
+register('read', function (handle)
+    return handle:read()
+end)

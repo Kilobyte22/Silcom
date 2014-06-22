@@ -3,6 +3,7 @@ vfs = {}
 local mounts = {}
 local mountCache = {}
 local filesystems = {}
+fs = {} -- namespace for file system classes
 setmetatable(mountCache, {__mode = 'k'})
 
 function vfs.resolveMount(path) -- if anyone wants to increase performance, go ahead
@@ -15,12 +16,12 @@ function vfs.resolveMount(path) -- if anyone wants to increase performance, go a
             return m, path2
         end
     end
-    return '/'
+    return mounts['/'], path
 end
 
 function vfs.open(file, mode)
     local driver, path = vfs.resolveMount(file)
-    return driver.driver:open(path, mode)
+    return driver.fs:open(path, mode)
 end
 
 function vfs.split(path) -- shamelessly stolen from OpenOS :P
@@ -68,5 +69,25 @@ function vfs.mount(driver, filehandle, mountpoint, options)
 end
 
 function vfs.registerFileSystem(name, driver)
-    
+    filesystems[name] = driver
+end
+
+function vfs.fsFromName(name)
+    return filesystems[name]
+end
+
+vfs.BasicFileHandle = class('BasicFileHandle')
+
+function vfs.BasicFileHandle:initialize(driver, mode, descriptor)
+    self.driver = driver
+    self.mode = mode
+    self.handle = descriptor
+end
+
+function vfs.BasicFileHandle:write(text)
+    self.driver:write(self.handle, text)
+end
+
+function vfs.BasicFileHandle:read()
+    return self.driver:read(self.handle)
 end
